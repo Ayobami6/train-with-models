@@ -2,6 +2,8 @@ from collections import Counter
 from operator import __setitem__
 import seaborn as sns
 import plotly.express as px
+# from hyperopt import tpe
+# from hpsklearn import HyperoptEstimator, sklearn_ExtraTreesClassifier, random_forest
 from IPython.display import display
 from imblearn.combine import SMOTEENN, SMOTETomek
 from imblearn.over_sampling import SMOTE, RandomOverSampler, SMOTENC, SMOTEN, ADASYN, BorderlineSMOTE, KMeansSMOTE, \
@@ -33,7 +35,8 @@ from sklearn.tree import DecisionTreeClassifier, ExtraTreeClassifier
 from sklearn.svm import NuSVC
 from xgboost import XGBClassifier
 from imblearn.ensemble import BalancedBaggingClassifier
-from MultiTrain.methods.multitrain_methods import directory, img, img_plotly, kf_best_model, write_to_excel
+from MultiTrain.methods.multitrain_methods import directory, img, img_plotly, kf_best_model, write_to_excel, \
+    _check_target
 from skopt import BayesSearchCV
 from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV, cross_validate
 from sklearn.experimental import enable_halving_search_cv  # noqa
@@ -50,6 +53,9 @@ import warnings
 import time
 
 import logging
+import os
+
+# os.environ['OMP_NUM_THREADS'] = "1"
 
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
@@ -62,7 +68,6 @@ class MultiClassifier:
                  cores: int = -1,
                  random_state: int = randint(1000),
                  verbose: bool = False,
-                 target_class: str = 'binary',
                  imbalanced: bool = False,
                  sampling: str = None,
                  strategy: str or float = "auto") -> None:
@@ -70,10 +75,10 @@ class MultiClassifier:
         self.cores = cores
         self.random_state = random_state
         self.verbose = verbose
-        self.target_class = target_class
         self.sampling = sampling
         self.imbalanced = imbalanced
         self.strategy = strategy
+
         self.oversampling_list = ['SMOTE', 'RandomOverSampler', 'SMOTEN', 'ADASYN',
                                   'BorderlineSMOTE', 'KMeansSMOTE', 'SVMSMOTE']
         self.oversampling_methods = [SMOTE(sampling_strategy=self.strategy, random_state=self.random_state),
@@ -100,6 +105,7 @@ class MultiClassifier:
                                                               n_jobs=self.cores),
                                       RepeatedEditedNearestNeighbours(sampling_strategy=self.strategy,
                                                                       n_jobs=self.cores),
+<<<<<<< HEAD
                                       AllKNN(
                                           sampling_strategy=self.strategy, n_jobs=self.cores),
                                       InstanceHardnessThreshold(sampling_strategy=self.strategy,
@@ -107,13 +113,23 @@ class MultiClassifier:
                                                                 n_jobs=self.cores),
                                       NearMiss(
                                           sampling_strategy=self.strategy, n_jobs=self.cores),
+=======
+                                      AllKNN(sampling_strategy=self.strategy,
+                                             n_jobs=self.cores),
+                                      InstanceHardnessThreshold(sampling_strategy=self.strategy,
+                                                                random_state=self.random_state,
+                                                                n_jobs=self.cores),
+                                      NearMiss(sampling_strategy=self.strategy,
+                                               n_jobs=self.cores),
+>>>>>>> upstream/main
                                       NeighbourhoodCleaningRule(sampling_strategy=self.strategy,
                                                                 n_jobs=self.cores),
                                       OneSidedSelection(sampling_strategy=self.strategy,
                                                         n_jobs=self.cores),
                                       RandomUnderSampler(sampling_strategy=self.strategy,
                                                          random_state=self.random_state),
-                                      TomekLinks(sampling_strategy=self.strategy, n_jobs=self.cores)]
+                                      TomekLinks(sampling_strategy=self.strategy,
+                                                 n_jobs=self.cores)]
 
         self.over_under_list = ['SMOTEENN', 'SMOTETomek']
         self.over_under_methods = [SMOTEENN(sampling_strategy=self.strategy,
@@ -193,6 +209,9 @@ class MultiClassifier:
               normalize: any = None,
               columns_to_scale: list = None,
               n_components: int = None):
+
+        global the_y
+        the_y = y
         """
         :param X: features
         :param y: labels
@@ -246,22 +265,22 @@ class MultiClassifier:
                         if normalize is not None:
                             if columns_to_scale is None:
                                 if isinstance(columns_to_scale, list) is False:
-                                    raise ValueError('Pass a list or tuple containing the columns to be scaled to the '
-                                                     'column_to_scale parameter')
-                                elif isinstance(columns_to_scale, tuple) is False:
-                                    raise ValueError('Pass a list or tuple containing the columns to be scaled to the '
-                                                     'column_to_scale parameter')
+                                    raise ValueError('Pass a list containing the columns to be scaled to the '
+                                                     'column_to_scale parameter when using normalize')
 
-                            if columns_to_scale is not None and isinstance(columns_to_scale, list) or \
-                                    isinstance(columns_to_scale, tuple):
-                                if normalize in norm:
-                                    if normalize == 'StandardScaler':
-                                        scale = StandardScaler()
-                                    elif normalize == 'MinMaxScaler':
-                                        scale = MinMaxScaler()
-                                    elif normalize == 'RobustScaler':
-                                        scale = RobustScaler()
+                            if columns_to_scale is not None:
+                                if isinstance(columns_to_scale, tuple):
+                                    raise ValueError('You can only pass a list to columns_to_scale')
+                                elif isinstance(columns_to_scale, list):
+                                    if normalize in norm:
+                                        if normalize == 'StandardScaler':
+                                            scale = StandardScaler()
+                                        elif normalize == 'MinMaxScaler':
+                                            scale = MinMaxScaler()
+                                        elif normalize == 'RobustScaler':
+                                            scale = RobustScaler()
 
+<<<<<<< HEAD
                                     X_train[columns_to_scale] = scale.fit_transform(
                                         X_train[columns_to_scale])
                                     X_test[columns_to_scale] = scale.transform(
@@ -272,12 +291,57 @@ class MultiClassifier:
                                     X_train = pca.fit_transform(X_train)
                                     X_test = pca.transform(X_test)
                                     return X_train, X_test, y_train, y_test
+=======
+                                        X_train[columns_to_scale] = scale.fit_transform(X_train[columns_to_scale])
+                                        X_test[columns_to_scale] = scale.transform(X_test[columns_to_scale])
+
+                                        pca = PCA(n_components=n_components, random_state=self.random_state)
+                                        X_train = pca.fit_transform(X_train)
+                                        X_test = pca.transform(X_test)
+                                        return X_train, X_test, y_train, y_test
+>>>>>>> upstream/main
 
             else:
+                norm = ['StandardScaler', 'MinMaxScaler', 'RobustScaler']
+                if normalize:
+                    if columns_to_scale is None:
+                        raise ValueError('Pass a list containing the columns to be scaled to the '
+                                         'column_to_scale parameter when using normalize')
+                    if columns_to_scale:
+                        if isinstance(columns_to_scale, tuple):
+                            raise ValueError('You can only pass a list to columns_to_scale')
 
-                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=sizeOfTest,
-                                                                    train_size=1 - sizeOfTest)
-                return X_train, X_test, y_train, y_test
+                        if isinstance(columns_to_scale, list):
+                            if normalize in norm:
+                                if normalize == 'StandardScaler':
+                                    scale = StandardScaler()
+                                elif normalize == 'MinMaxScaler':
+                                    scale = MinMaxScaler()
+                                elif normalize == 'RobustScaler':
+                                    scale = RobustScaler()
+
+                                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=sizeOfTest,
+                                                                                    train_size=1 - sizeOfTest,
+                                                                                    random_state=randomState,
+                                                                                    shuffle=shuffle_data)
+
+                                X_train[columns_to_scale] = scale.fit_transform(X_train[columns_to_scale])
+                                X_test[columns_to_scale] = scale.transform(X_test[columns_to_scale])
+
+                                X_train, X_test = X_train.reset_index(), X_test.reset_index()
+                                X_train, X_test = X_train.drop('index', axis=1), X_test.drop('index', axis=1)
+
+                                return X_train, X_test, y_train, y_test
+
+                else:
+                    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=sizeOfTest,
+                                                                        train_size=1 - sizeOfTest,
+                                                                        random_state=randomState,
+                                                                        shuffle=shuffle_data)
+                    X_train, X_test = X_train.reset_index(), X_test.reset_index()
+                    X_train, X_test = X_train.drop('index', axis=1), X_test.drop('index', axis=1)
+
+                    return X_train, X_test, y_train, y_test
 
     def classifier_model_names(self) -> list:
         model_names = ["Logistic Regression", "LogisticRegressionCV", "SGDClassifier", "PassiveAggressiveClassifier",
@@ -294,8 +358,16 @@ class MultiClassifier:
         """
         It initializes all the models that we will be using in our ensemble
         """
+<<<<<<< HEAD
         lr = LogisticRegression(
             n_jobs=self.cores, random_state=self.random_state)
+=======
+        # if self.param_tuning is True:
+        #    if self.timeout is False:
+        #        logger.info('It is recommended to set a timeout to avoid longer training times')
+
+        lr = LogisticRegression(n_jobs=self.cores, random_state=self.random_state)
+>>>>>>> upstream/main
         lrcv = LogisticRegressionCV(n_jobs=self.cores, refit=True)
         sgdc = SGDClassifier(n_jobs=self.cores, random_state=self.random_state)
         pagg = PassiveAggressiveClassifier(
@@ -362,8 +434,8 @@ class MultiClassifier:
 
     def _startKFold_(self, param, param_X, param_y, param_cv, train_score):
         names = self.classifier_model_names()
-
-        if self.target_class == 'binary':
+        target_class = _check_target(param_y)
+        if target_class == 'binary':
             dataframe = {}
             for i in range(len(param)):
 
@@ -422,7 +494,7 @@ class MultiClassifier:
                     dataframe.update({names[i]: scores_df})
             return dataframe
 
-        elif self.target_class == 'multiclass':
+        elif target_class == 'multiclass':
             dataframe = {}
             for j in range(len(param)):
                 start = time.time()
@@ -477,7 +549,7 @@ class MultiClassifier:
             show_train_score: bool = False,
             text: bool = False,
             vectorizer: str = None,
-            ngrams: tuple = None
+            ngrams: tuple = None,
             ) -> DataFrame:
         # If splitting is False, then do nothing. If splitting is True, then assign the values of split_data to the
         # variables X_train, X_test, y_train, and y_test
@@ -525,6 +597,8 @@ class MultiClassifier:
         # fit(X = features, y = labels, kf = True, fold = (10, 42, True))
 
         global y_te
+
+        target_class = _check_target(y) if y else _check_target(split_data[3])
         if text:
             if isinstance(text, bool) is False:
                 raise TypeError(
@@ -576,13 +650,6 @@ class MultiClassifier:
         if kf is True and (X is None or y is None or (X is None and y is None)):
             raise ValueError("Set the values of features X and target y")
 
-        if self.target_class:
-            accepted_targets = ['binary', 'multiclass']
-            if self.target_class not in accepted_targets:
-                raise Exception(
-                    f"target_class should be set to either binary or multiclass but target_class was set to "
-                    f"{self.target_class}")
-
         if splitting is True or split_self is True:
             if splitting and split_data:
                 X_tr, X_te, y_tr, y_te = split_data[0], split_data[1], split_data[2], split_data[3]
@@ -605,7 +672,7 @@ class MultiClassifier:
                         try:
                             model[i].fit(X_tr, y_tr)
                         except ValueError:
-                            logger.error(f'{model[i]} has an issue')
+                            logger.error(f'{model[i]} unable to fit properly')
                             pass
 
                     elif self.imbalanced is True:
@@ -686,33 +753,28 @@ class MultiClassifier:
                                 pipeline.fit(X_tr, y_tr)
 
                         except Exception:
-                            logger.error(f'{model[i]} has an issue')
+                            logger.error(f'{model[i]} cannot fit properly')
                             pass
 
                     end = time.time()
 
-                    # pred = pipeline.predict(X_te)
-                    # pred_train = pipeline.predict(X_tr)
-
                 true = y_te
                 true_train = y_tr
-                # print(f'{model[i]}: {accuracy_score(true, pred)}')
+
                 acc = accuracy_score(true, pred)
                 bacc = balanced_accuracy_score(true, pred)
-                clr = classification_report(true, pred)
-                cfm = confusion_matrix(true, pred)
                 r2 = r2_score(true, pred)
                 try:
                     roc = roc_auc_score(true, pred)
                 except ValueError:
                     roc = None
 
-                if self.target_class == 'binary':
+                if target_class == 'binary':
                     f1 = f1_score(true, pred)
                     pre = precision_score(true, pred)
                     rec = recall_score(true, pred)
 
-                elif self.target_class == 'multiclass':
+                elif target_class == 'multiclass':
                     if self.imbalanced is True:
                         f1 = f1_score(true, pred, average='micro')
                         pre = precision_score(true, pred, average='micro')
@@ -724,8 +786,6 @@ class MultiClassifier:
 
                 tacc = accuracy_score(true_train, pred_train)
                 tbacc = balanced_accuracy_score(true_train, pred_train)
-                tclr = classification_report(true_train, pred_train)
-                tcfm = confusion_matrix(true_train, pred_train)
                 tr2 = r2_score(true_train, pred_train)
                 try:
                     troc = roc_auc_score(true_train, pred_train)
@@ -733,12 +793,12 @@ class MultiClassifier:
 
                     troc = None
 
-                if self.target_class == 'binary':
+                if target_class == 'binary':
                     tf1 = f1_score(true_train, pred_train)
                     tpre = precision_score(true_train, pred_train)
                     trec = recall_score(true_train, pred_train)
 
-                elif self.target_class == 'multiclass':
+                elif target_class == 'multiclass':
                     if self.imbalanced is True:
                         tf1 = f1_score(true_train, pred_train, average='micro')
                         tpre = precision_score(
@@ -768,35 +828,37 @@ class MultiClassifier:
                     eval_mul = [overfit, tacc, acc, tbacc, bacc, tr2, r2, tf1, f1, tpre, pre, trec, rec,
                                 time_taken]
 
-                if self.target_class == 'binary':
+                if target_class == 'binary':
                     dataframe.update({names[i]: eval_bin})
-                elif self.target_class == 'multiclass':
+                elif target_class == 'multiclass':
                     dataframe.update({names[i]: eval_mul})
 
             if show_train_score is False:
-                if self.target_class == 'binary':
+                if target_class == 'binary':
                     df = pd.DataFrame.from_dict(dataframe,
                                                 orient='index',
                                                 columns=self.t_split_binary_columns_test)
 
-                elif self.target_class == 'multiclass':
+                elif target_class == 'multiclass':
                     df = pd.DataFrame.from_dict(dataframe,
                                                 orient='index',
                                                 columns=self.t_split_multiclass_columns_test)
 
             elif show_train_score is True:
-                if self.target_class == 'binary':
+                if target_class == 'binary':
                     df = pd.DataFrame.from_dict(dataframe,
                                                 orient='index',
                                                 columns=self.t_split_binary_columns_train)
 
-                elif self.target_class == 'multiclass':
+                elif target_class == 'multiclass':
                     df = pd.DataFrame.from_dict(dataframe,
                                                 orient='index',
                                                 columns=self.t_split_multiclass_columns_train)
 
             if return_best_model is not None:
                 logger.info(f'BEST MODEL BASED ON {return_best_model}')
+                retrieve_df = df.reset_index()
+                logger.info(f'The best model based on the {return_best_model} metric is {retrieve_df["index"][0]}')
                 display(df.sort_values(by=return_best_model, ascending=False))
 
             elif return_best_model is None:
@@ -811,7 +873,7 @@ class MultiClassifier:
             KFoldModel = self._initialize_()
             names = self.classifier_model_names()
 
-            if self.target_class == 'binary':
+            if target_class == 'binary':
                 logger.info("Training started")
                 dataframe = self._startKFold_(param=KFoldModel,
                                               param_X=X,
@@ -832,7 +894,7 @@ class MultiClassifier:
                 kf_ = kf_best_model(df, return_best_model, excel)
                 return kf_
 
-            elif self.target_class == 'multiclass':
+            elif target_class == 'multiclass':
                 logger.info("Training started")
                 dataframe = self._startKFold_(param=KFoldModel,
                                               param_X=X,
@@ -1009,7 +1071,7 @@ class MultiClassifier:
 
         names = self.classifier_model_names()
         sns.set()
-
+        target_class = _check_target(the_y)
         param['model_names'] = names
         FILE_FORMATS = ['pdf', 'png']
         if save not in FILE_FORMATS:
@@ -1080,7 +1142,7 @@ class MultiClassifier:
             display(plot1)
 
         elif t_split is True:
-            if self.target_class == 'binary':
+            if target_class == 'binary':
                 plt.figure(figsize=size)
                 plot = sns.barplot(x="model_names", y="Accuracy", data=param)
                 plot.set_xticklabels(plot.get_xticklabels(), rotation=90)
@@ -1125,7 +1187,7 @@ class MultiClassifier:
                     name = save_name
                     img(FILENAME=name, FILE_PATH=file_path, type_='picture')
 
-            elif self.target_class == 'multiclass':
+            elif target_class == 'multiclass':
                 plt.figure(figsize=size)
                 plot = sns.barplot(x="model_names", y="Accuracy", data=param)
                 plot.set_xticklabels(plot.get_xticklabels(), rotation=90)
@@ -1189,14 +1251,13 @@ class MultiClassifier:
                 """
 
         names = self.classifier_model_names()
-
         param['model_names'] = names
-
+        target_class = _check_target(the_y)
         if kf is True:
             if t_split is True:
                 raise Exception("set kf to True if you used KFold or set t_split to True"
                                 "if you used the split method.")
-            if self.target_class == 'binary':
+            if target_class == 'binary':
                 IMAGE_COLUMNS = []
                 for i in range(len(self.kf_binary_columns_train)):
                     IMAGE_COLUMNS.append(
@@ -1222,12 +1283,12 @@ class MultiClassifier:
                             img_plotly(
                                 name=IMAGE_COLUMNS[j],
                                 figure=fig,
-                                label=self.target_class,
+                                label=target_class,
                                 FILENAME=dire,
                                 FILE_PATH=file_path,
                             )
 
-            elif self.target_class == 'multiclass':
+            elif target_class == 'multiclass':
                 IMAGE_COLUMNS = []
                 for i in range(len(self.kf_multiclass_columns_train)):
                     IMAGE_COLUMNS.append(
@@ -1253,7 +1314,7 @@ class MultiClassifier:
                             img_plotly(
                                 name=IMAGE_COLUMNS[j],
                                 figure=fig,
-                                label=self.target_class,
+                                label=target_class,
                                 FILENAME=dire,
                                 FILE_PATH=file_path,
                             )
@@ -1263,7 +1324,7 @@ class MultiClassifier:
                 raise Exception("set kf to True if you used KFold or set t_split to True"
                                 "if you used the split method.")
 
-            if self.target_class == 'binary':
+            if target_class == 'binary':
                 IMAGE_COLUMNS = []
                 for i in range(len(self.t_split_binary_columns_test)):
                     IMAGE_COLUMNS.append(
@@ -1289,12 +1350,12 @@ class MultiClassifier:
                             img_plotly(
                                 name=IMAGE_COLUMNS[j],
                                 figure=fig,
-                                label=self.target_class,
+                                label=target_class,
                                 FILENAME=dire,
                                 FILE_PATH=file_path,
                             )
 
-            elif self.target_class == 'multiclass':
+            elif target_class == 'multiclass':
                 IMAGE_COLUMNS = []
                 for i in range(len(self.t_split_multiclass_columns_test)):
                     IMAGE_COLUMNS.append(
@@ -1320,7 +1381,7 @@ class MultiClassifier:
                             img_plotly(
                                 name=IMAGE_COLUMNS[j],
                                 figure=fig,
-                                label=self.target_class,
+                                label=target_class,
                                 FILENAME=dire,
                                 FILE_PATH=file_path,
                             )
