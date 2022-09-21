@@ -77,11 +77,16 @@ class MultiClassifier:
         self.oversampling_list = ['SMOTE', 'RandomOverSampler', 'SMOTEN', 'ADASYN',
                                   'BorderlineSMOTE', 'KMeansSMOTE', 'SVMSMOTE']
         self.oversampling_methods = [SMOTE(sampling_strategy=self.strategy, random_state=self.random_state),
-                                     RandomOverSampler(sampling_strategy=self.strategy, random_state=self.random_state),
-                                     SMOTEN(sampling_strategy=self.strategy, random_state=self.random_state),
-                                     ADASYN(sampling_strategy=self.strategy, random_state=self.random_state),
-                                     BorderlineSMOTE(sampling_strategy=self.strategy, random_state=self.random_state),
-                                     KMeansSMOTE(sampling_strategy=self.strategy, random_state=self.random_state),
+                                     RandomOverSampler(
+                                         sampling_strategy=self.strategy, random_state=self.random_state),
+                                     SMOTEN(sampling_strategy=self.strategy,
+                                            random_state=self.random_state),
+                                     ADASYN(sampling_strategy=self.strategy,
+                                            random_state=self.random_state),
+                                     BorderlineSMOTE(
+                                         sampling_strategy=self.strategy, random_state=self.random_state),
+                                     KMeansSMOTE(
+                                         sampling_strategy=self.strategy, random_state=self.random_state),
                                      SVMSMOTE(sampling_strategy=self.strategy, random_state=self.random_state)]
 
         self.undersampling_list = ['CondensedNearestNeighbour', 'EditedNearestNeighbours',
@@ -95,11 +100,13 @@ class MultiClassifier:
                                                               n_jobs=self.cores),
                                       RepeatedEditedNearestNeighbours(sampling_strategy=self.strategy,
                                                                       n_jobs=self.cores),
-                                      AllKNN(sampling_strategy=self.strategy, n_jobs=self.cores),
+                                      AllKNN(
+                                          sampling_strategy=self.strategy, n_jobs=self.cores),
                                       InstanceHardnessThreshold(sampling_strategy=self.strategy,
                                                                 random_state=self.random_state,
                                                                 n_jobs=self.cores),
-                                      NearMiss(sampling_strategy=self.strategy, n_jobs=self.cores),
+                                      NearMiss(
+                                          sampling_strategy=self.strategy, n_jobs=self.cores),
                                       NeighbourhoodCleaningRule(sampling_strategy=self.strategy,
                                                                 n_jobs=self.cores),
                                       OneSidedSelection(sampling_strategy=self.strategy,
@@ -129,7 +136,8 @@ class MultiClassifier:
         self.kf_multiclass_columns_train = ["Precision Macro(Train)", "Precision Macro", "Recall Macro(Train)",
                                             "Recall Macro", "f1 Macro(Train)", "f1 Macro", "Time Taken(s)"]
 
-        self.kf_multiclass_columns_test = ["Precision Macro", "Recall Macro", "f1 Macro"]
+        self.kf_multiclass_columns_test = [
+            "Precision Macro", "Recall Macro", "f1 Macro"]
 
         self.t_split_binary_columns_train = ["Overfitting", "Accuracy(Train)", "Accuracy", "Balanced Accuracy(Train)",
                                              "Balanced Accuracy", "r2 score(Train)", "r2 score", "ROC AUC(Train)",
@@ -154,7 +162,8 @@ class MultiClassifier:
         print("\n")
         print(f'Under-Sampling Methods = {self.undersampling_list}')
         print("\n")
-        print(f'Combination of over and under-sampling methods = {self.over_under_list}')
+        print(
+            f'Combination of over and under-sampling methods = {self.over_under_list}')
 
     def _get_sample_index_method(self):
 
@@ -206,7 +215,8 @@ class MultiClassifier:
             raise ValueError(f"{X} and {y} are not valid arguments for 'split'."
                              f"Try using the standard variable names e.g split(X, y) instead of split({X}, {y})")
         elif isinstance(strat, bool) is False:
-            raise TypeError("argument of type int or str is not valid. Parameters for strat is either False or True")
+            raise TypeError(
+                "argument of type int or str is not valid. Parameters for strat is either False or True")
 
         elif sizeOfTest < 0 or sizeOfTest > 1:
             raise ValueError("value of sizeOfTest should be between 0 and 1")
@@ -217,7 +227,8 @@ class MultiClassifier:
             if strat is True:
 
                 if shuffle_data is False:
-                    raise TypeError("shuffle_data can only be False if strat is False")
+                    raise TypeError(
+                        "shuffle_data can only be False if strat is False")
 
                 elif shuffle_data is True:
                     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=sizeOfTest,
@@ -251,10 +262,13 @@ class MultiClassifier:
                                     elif normalize == 'RobustScaler':
                                         scale = RobustScaler()
 
-                                    X_train[columns_to_scale] = scale.fit_transform(X_train[columns_to_scale])
-                                    X_test[columns_to_scale] = scale.transform(X_test[columns_to_scale])
+                                    X_train[columns_to_scale] = scale.fit_transform(
+                                        X_train[columns_to_scale])
+                                    X_test[columns_to_scale] = scale.transform(
+                                        X_test[columns_to_scale])
 
-                                    pca = PCA(n_components=n_components, random_state=self.random_state)
+                                    pca = PCA(n_components=n_components,
+                                              random_state=self.random_state)
                                     X_train = pca.fit_transform(X_train)
                                     X_test = pca.transform(X_test)
                                     return X_train, X_test, y_train, y_test
@@ -280,16 +294,21 @@ class MultiClassifier:
         """
         It initializes all the models that we will be using in our ensemble
         """
-        lr = LogisticRegression(n_jobs=self.cores, random_state=self.random_state)
+        lr = LogisticRegression(
+            n_jobs=self.cores, random_state=self.random_state)
         lrcv = LogisticRegressionCV(n_jobs=self.cores, refit=True)
         sgdc = SGDClassifier(n_jobs=self.cores, random_state=self.random_state)
-        pagg = PassiveAggressiveClassifier(n_jobs=self.cores, random_state=self.random_state)
-        rfc = RandomForestClassifier(n_jobs=self.cores, random_state=self.random_state)
+        pagg = PassiveAggressiveClassifier(
+            n_jobs=self.cores, random_state=self.random_state)
+        rfc = RandomForestClassifier(
+            n_jobs=self.cores, random_state=self.random_state)
         gbc = GradientBoostingClassifier(random_state=self.random_state)
         hgbc = HistGradientBoostingClassifier(random_state=self.random_state)
         abc = AdaBoostClassifier(random_state=self.random_state)
-        cat = CatBoostClassifier(thread_count=self.cores, verbose=False, random_state=self.random_state)
-        xgb = XGBClassifier(eval_metric="mlogloss", n_jobs=self.cores, refit=True, random_state=self.random_state)
+        cat = CatBoostClassifier(
+            thread_count=self.cores, verbose=False, random_state=self.random_state)
+        xgb = XGBClassifier(eval_metric="mlogloss", n_jobs=self.cores,
+                            refit=True, random_state=self.random_state)
         gnb = GaussianNB()
         lda = LinearDiscriminantAnalysis()
         knc = KNeighborsClassifier(n_jobs=self.cores)
@@ -299,15 +318,18 @@ class MultiClassifier:
         bnb = BernoulliNB()
         mnb = MultinomialNB()
         conb = ComplementNB()
-        etcs = ExtraTreesClassifier(n_jobs=self.cores, random_state=self.random_state)
+        etcs = ExtraTreesClassifier(
+            n_jobs=self.cores, random_state=self.random_state)
         rcl = RidgeClassifier(random_state=self.random_state)
         rclv = RidgeClassifierCV()
         etc = ExtraTreeClassifier(random_state=self.random_state)
         # self.gpc = GaussianProcessClassifier(warm_start=True, random_state=42, n_jobs=-1)
         qda = QuadraticDiscriminantAnalysis()
         lsvc = LinearSVC(random_state=self.random_state)
-        bc = BaggingClassifier(n_jobs=self.cores, random_state=self.random_state)
-        bbc = BalancedBaggingClassifier(n_jobs=self.cores, random_state=self.random_state)
+        bc = BaggingClassifier(
+            n_jobs=self.cores, random_state=self.random_state)
+        bbc = BalancedBaggingClassifier(
+            n_jobs=self.cores, random_state=self.random_state)
         per = Perceptron(n_jobs=self.cores, random_state=self.random_state)
         nu = NuSVC(random_state=self.random_state)
         lgbm = LGBMClassifier(random_state=self.random_state)
@@ -348,7 +370,8 @@ class MultiClassifier:
                 if self.verbose is True:
                     print(param[i])
 
-                score = ('accuracy', 'balanced_accuracy', 'precision', 'recall', 'f1', 'r2')
+                score = ('accuracy', 'balanced_accuracy',
+                         'precision', 'recall', 'f1', 'r2')
 
                 if self.imbalanced is False:
                     start = time.time()
@@ -361,7 +384,8 @@ class MultiClassifier:
                 elif self.imbalanced is True:
                     start = time.time()
                     method = self._get_sample_index_method()
-                    pipeline = imbpipe(steps=[('sample', method), ('model', param[i])])
+                    pipeline = imbpipe(
+                        steps=[('sample', method), ('model', param[i])])
                     scores = cross_validate(estimator=pipeline, X=param_X, y=param_y, scoring=score,
                                             cv=param_cv, n_jobs=self.cores, return_train_score=True)
                 end = time.time()
@@ -381,7 +405,8 @@ class MultiClassifier:
                 mean_test_recall = scores['test_recall'].mean()
                 train_stdev = scores['train_accuracy'].std()
                 test_stdev = scores['test_accuracy'].std()
-                overfitting = True if (mean_train_acc - mean_test_acc) > 0.1 else False
+                overfitting = True if (
+                    mean_train_acc - mean_test_acc) > 0.1 else False
                 # scores = scores.tolist()
                 if train_score is True:
                     scores_df = [overfitting, mean_train_acc, mean_test_acc, mean_train_bacc, mean_test_bacc,
@@ -409,7 +434,8 @@ class MultiClassifier:
 
                 if train_score is True:
 
-                    mean_train_precision = scores['train_precision_macro'].mean()
+                    mean_train_precision = scores['train_precision_macro'].mean(
+                    )
                     mean_test_precision = scores['test_precision_macro'].mean()
                     mean_train_f1 = scores['train_f1_macro'].mean()
                     mean_test_f1 = scores['test_f1_macro'].mean()
@@ -427,7 +453,8 @@ class MultiClassifier:
                     mean_test_f1 = scores['test_f1_macro'].mean()
                     mean_test_recall = scores['test_recall_macro'].mean()
 
-                    scores_df = [mean_test_precision, mean_test_f1, mean_test_recall, seconds]
+                    scores_df = [mean_test_precision,
+                                 mean_test_f1, mean_test_recall, seconds]
 
                     dataframe.update({names[j]: scores_df})
 
@@ -441,7 +468,7 @@ class MultiClassifier:
             X_test: str = None,
             y_train: str = None,
             y_test: str = None,
-            split_data = None,
+            split_data=None,
             splitting: bool = False,
             kf: bool = False,
             fold: int = 5,
@@ -500,18 +527,22 @@ class MultiClassifier:
         global y_te
         if text:
             if isinstance(text, bool) is False:
-                raise TypeError('parameter text is of type bool only. set to true or false')
+                raise TypeError(
+                    'parameter text is of type bool only. set to true or false')
 
             if text is False:
                 if vectorizer is not None:
-                    raise Exception('parameter vectorizer can only be accepted when parameter text is True')
+                    raise Exception(
+                        'parameter vectorizer can only be accepted when parameter text is True')
 
                 if ngrams is not None:
-                    raise Exception('parameter ngrams can only be accepted when parameter text is True')
+                    raise Exception(
+                        'parameter ngrams can only be accepted when parameter text is True')
 
         if self.imbalanced is False:
             if self.sampling:
-                raise Exception('this parameter can only be used if "imbalanced" is set to True')
+                raise Exception(
+                    'this parameter can only be used if "imbalanced" is set to True')
 
         if isinstance(splitting, bool) is False:
             raise TypeError(
@@ -710,20 +741,26 @@ class MultiClassifier:
                 elif self.target_class == 'multiclass':
                     if self.imbalanced is True:
                         tf1 = f1_score(true_train, pred_train, average='micro')
-                        tpre = precision_score(true_train, pred_train, average='micro')
-                        trec = recall_score(true_train, pred_train, average='micro')
+                        tpre = precision_score(
+                            true_train, pred_train, average='micro')
+                        trec = recall_score(
+                            true_train, pred_train, average='micro')
 
                     elif self.imbalanced is False:
                         tf1 = f1_score(true_train, pred_train, average='macro')
-                        tpre = precision_score(true_train, pred_train, average='macro')
-                        trec = recall_score(true_train, pred_train, average='macro')
+                        tpre = precision_score(
+                            true_train, pred_train, average='macro')
+                        trec = recall_score(
+                            true_train, pred_train, average='macro')
 
                 overfit = True if (tacc - acc) > 0.1 else False
                 time_taken = round(end - start, 2)
 
                 if show_train_score is False:
-                    eval_bin = [overfit, acc, bacc, r2, roc, f1, pre, rec, time_taken]
-                    eval_mul = [overfit, acc, bacc, r2, f1, pre, rec, time_taken]
+                    eval_bin = [overfit, acc, bacc, r2,
+                                roc, f1, pre, rec, time_taken]
+                    eval_mul = [overfit, acc, bacc,
+                                r2, f1, pre, rec, time_taken]
 
                 elif show_train_score is True:
                     eval_bin = [overfit, tacc, acc, tbacc, bacc, tr2, r2, troc, roc, tf1, f1, tpre,
@@ -804,9 +841,11 @@ class MultiClassifier:
                                               train_score=show_train_score)
 
                 if show_train_score is True:
-                    df = pd.DataFrame.from_dict(dataframe, orient='index', columns=self.kf_multiclass_columns_train)
+                    df = pd.DataFrame.from_dict(
+                        dataframe, orient='index', columns=self.kf_multiclass_columns_train)
                 elif show_train_score is False:
-                    df = pd.DataFrame.from_dict(dataframe, orient='index', columns=self.kf_multiclass_columns_test)
+                    df = pd.DataFrame.from_dict(
+                        dataframe, orient='index', columns=self.kf_multiclass_columns_test)
 
                 kf_ = kf_best_model(df, return_best_model, excel)
                 return kf_
@@ -951,7 +990,6 @@ class MultiClassifier:
                   save: str = None,
                   save_name='dir1'
                   ):
-
         """
         The function takes in a dictionary of the model names and their scores, and plots them in a bar chart
 
@@ -986,11 +1024,13 @@ class MultiClassifier:
 
         if file_path:
             if save is None:
-                raise Exception("set save to either 'pdf' or 'png' before defining a file path")
+                raise Exception(
+                    "set save to either 'pdf' or 'png' before defining a file path")
 
         if save is None:
             if save_name:
-                raise Exception('You can only use save_name after param save is defined')
+                raise Exception(
+                    'You can only use save_name after param save is defined')
 
         if kf is True and t_split is True:
             raise Exception("set kf to True if you used KFold or set t_split to True"
@@ -1023,7 +1063,8 @@ class MultiClassifier:
             plt.title("R2 SCORE")
 
             plt.figure(figsize=size)
-            plot1 = sns.barplot(x="model_names", y="Standard Deviation of Accuracy", data=param)
+            plot1 = sns.barplot(
+                x="model_names", y="Standard Deviation of Accuracy", data=param)
             plot1.set_xticklabels(plot1.get_xticklabels(), rotation=90)
             plt.title("STANDARD DEVIATION")
 
@@ -1158,7 +1199,8 @@ class MultiClassifier:
             if self.target_class == 'binary':
                 IMAGE_COLUMNS = []
                 for i in range(len(self.kf_binary_columns_train)):
-                    IMAGE_COLUMNS.append(self.kf_binary_columns_train[i] + ".png")
+                    IMAGE_COLUMNS.append(
+                        self.kf_binary_columns_train[i] + ".png")
 
                 if save is True:
                     dire = directory(save_name)
@@ -1167,12 +1209,14 @@ class MultiClassifier:
                     fig = px.bar(data_frame=param,
                                  x="model_names",
                                  y=self.kf_binary_columns_train[j],
-                                 hover_data=[self.kf_binary_columns_train[j], "model_names"],
+                                 hover_data=[
+                                     self.kf_binary_columns_train[j], "model_names"],
                                  color="Time Taken(s)")
                     display(fig)
                     if save is True:
                         if save_name is None:
-                            raise Exception("set save to True before using save_name")
+                            raise Exception(
+                                "set save to True before using save_name")
 
                         else:
                             img_plotly(
@@ -1186,7 +1230,8 @@ class MultiClassifier:
             elif self.target_class == 'multiclass':
                 IMAGE_COLUMNS = []
                 for i in range(len(self.kf_multiclass_columns_train)):
-                    IMAGE_COLUMNS.append(self.kf_multiclass_columns_train[i] + ".png")
+                    IMAGE_COLUMNS.append(
+                        self.kf_multiclass_columns_train[i] + ".png")
 
                 if save is True:
                     dire = directory(save_name)
@@ -1195,12 +1240,14 @@ class MultiClassifier:
                     fig = px.bar(data_frame=param,
                                  x="model_names",
                                  y=self.kf_multiclass_columns_train[j],
-                                 hover_data=[self.kf_multiclass_columns_train[j], "model_names"],
+                                 hover_data=[
+                                     self.kf_multiclass_columns_train[j], "model_names"],
                                  color="Time Taken(s)")
                     display(fig)
                     if save is True:
                         if save_name is None:
-                            raise Exception("set save to True before using save_name")
+                            raise Exception(
+                                "set save to True before using save_name")
 
                         elif save_name:
                             img_plotly(
@@ -1219,7 +1266,8 @@ class MultiClassifier:
             if self.target_class == 'binary':
                 IMAGE_COLUMNS = []
                 for i in range(len(self.t_split_binary_columns_test)):
-                    IMAGE_COLUMNS.append(self.t_split_binary_columns_test[i] + ".png")
+                    IMAGE_COLUMNS.append(
+                        self.t_split_binary_columns_test[i] + ".png")
 
                 if save is True:
                     dire = directory(save_name)
@@ -1228,12 +1276,14 @@ class MultiClassifier:
                     fig = px.bar(data_frame=param,
                                  x="model_names",
                                  y=self.t_split_binary_columns_test[j],
-                                 hover_data=[self.t_split_binary_columns_test[j], "model_names"],
+                                 hover_data=[
+                                     self.t_split_binary_columns_test[j], "model_names"],
                                  color="execution time(seconds)")
                     display(fig)
                     if save is True:
                         if save_name is None:
-                            raise Exception("set save to True before using save_name")
+                            raise Exception(
+                                "set save to True before using save_name")
 
                         else:
                             img_plotly(
@@ -1247,7 +1297,8 @@ class MultiClassifier:
             elif self.target_class == 'multiclass':
                 IMAGE_COLUMNS = []
                 for i in range(len(self.t_split_multiclass_columns_test)):
-                    IMAGE_COLUMNS.append(self.t_split_multiclass_columns_test[i] + ".png")
+                    IMAGE_COLUMNS.append(
+                        self.t_split_multiclass_columns_test[i] + ".png")
 
                 if save is True:
                     dire = directory(save_name)
@@ -1256,12 +1307,14 @@ class MultiClassifier:
                     fig = px.bar(data_frame=param,
                                  x="model_names",
                                  y=self.t_split_multiclass_columns_test[j],
-                                 hover_data=[self.t_split_multiclass_columns_test[j], "model_names"],
+                                 hover_data=[
+                                     self.t_split_multiclass_columns_test[j], "model_names"],
                                  color="execution time(seconds)")
                     display(fig)
                     if save is True:
                         if save_name is None:
-                            raise Exception("set save to True before using save_name")
+                            raise Exception(
+                                "set save to True before using save_name")
 
                         elif save_name:
                             img_plotly(
